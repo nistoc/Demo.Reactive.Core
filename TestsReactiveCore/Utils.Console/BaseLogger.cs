@@ -11,9 +11,9 @@ namespace Utils.Console
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
 
-            System.Console.BackgroundColor = consoleColor;
+            System.Console.ForegroundColor = consoleColor;
             action();
-            System.Console.BackgroundColor = ConsoleColor.Black;
+            System.Console.ForegroundColor = ConsoleColor.White;
         }
     }
 

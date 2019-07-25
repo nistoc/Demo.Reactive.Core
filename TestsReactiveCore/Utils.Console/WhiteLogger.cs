@@ -2,11 +2,11 @@
 
 namespace Utils.Console
 {
-    public class BlueLogger : BaseLogger
+    public class WhiteLogger : BaseLogger
     {
         public void Log(Action action)
         {
-            LogColored(ConsoleColor.Blue, action);
+            LogColored(ConsoleColor.White, action);
         }
     }
 }

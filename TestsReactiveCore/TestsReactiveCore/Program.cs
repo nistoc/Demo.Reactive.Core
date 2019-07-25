@@ -1,6 +1,7 @@
 ﻿using Contract.Abstracts.Data;
 using System;
 using System.Collections.Generic;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -13,6 +14,9 @@ namespace TestsReactiveCore
         static void Main(string[] args)
         {
             Console.WriteLine("Starting");
+            var yLogger = new YellowLogger();
+            var bLogger = new BlueLogger();
+            var wLogger = new WhiteLogger();
             // Started
 
 
@@ -21,143 +25,137 @@ namespace TestsReactiveCore
             //tickerThread.Start();
 
 
-            ///* Cold Subscription */
+            /* Cold Subscription */
 
-            //// create Observable generator
-            //var source = ObservableTickers();
-            ////subscribe to observable
-            //var subs = source.Subscribe(
-            //    x => LogYellow(() => Console.WriteLine("OnNext: {0}", x)),
-            //    ex => LogYellow(() => Console.WriteLine("OnError: {0}", ex.Message)),
-            //    () => LogYellow(() => Console.WriteLine("OnCompleted")));
-            ////subscribe to observable
-            //var subs2 = source
-            //    .Where(c => c.TypeId < 100)
-            //    .Subscribe(
-            //        x => LogBlue(() => Console.WriteLine("OnNext: {0}", x)),
-            //        ex => LogBlue(() => Console.WriteLine("OnError: {0}", ex.Message)),
-            //        () => LogBlue(() => Console.WriteLine("OnCompleted")));
-            //// kill subscription
-            //subs.Dispose();
-            //subs2.Dispose();
+            // create Observable generator
+            var source = ObservableTickers(50);
 
-            /* Hot Subscription */
+            //subscribe to observable
+            var subsCold = source.Subscribe(
+                x => yLogger.Log(() => Console.WriteLine("Cold OnNext: {0}", x)),
+                ex => yLogger.Log(() => Console.WriteLine("Cold OnError: {0}", ex.Message)),
+                () => yLogger.Log(() => Console.WriteLine("Cold OnCompleted")));
+            //subscribe to observable
+            var subs2Cold = source
+                .Where(c => c.TypeId < 500)
+                .Subscribe(
+                    x => bLogger.Log(() => Console.WriteLine("Cold OnNext: {0}", x)),
+                    ex => bLogger.Log(() => Console.WriteLine("Cold OnError: {0}", ex.Message)),
+                    () => bLogger.Log(() => Console.WriteLine("Cold OnCompleted")));
+            // kill subscription
+            subsCold.Dispose();
+            subs2Cold.Dispose();
+
+
+            /* Hot Subscription - 1 */
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("/* Hot Subscription - 1 */");
+            Console.WriteLine();
+
             // http://rxwiki.wikidot.com/101samples#toc48
-            //var inst = new TickerInstance();
-            //IObservable<ILogItem> observable = inst.ObservableTickers(); ;
-            //var shared = observable.Publish();
-            IConnectableObservable<ILogItem> hotSource = Observable.Publish<ILogItem>(ObservableTickers());
-            
-            var yLogger = new YellowLogger();
+            IConnectableObservable<ILogItem> hotSource = Observable.Publish<ILogItem>(ObservableTickers(100));
+            Thread.Sleep(2000);
+            wLogger.Log(() => Console.WriteLine("Стартую первый"));
             IDisposable hots = hotSource
                 //.Where(c => c.TypeId >= 1000)
                 .Subscribe(
-                    x => yLogger.Log(() => Console.WriteLine("Observer 1: OnNext: {0}", x)),
-                    ex => yLogger.Log(() => Console.WriteLine("Observer 1: OnError: {0}", ex.Message)),
-                    () => yLogger.Log(() => Console.WriteLine("Observer 1: OnCompleted")));
-            
-            hotSource.Connect();       // hot is connected to source and starts pushing value to subscribers 
-            var bLogger = new BlueLogger();
+                    x => yLogger.Log(() => Console.WriteLine("Hot1 Observer 1: OnNext: {0}", x)),
+                    ex => yLogger.Log(() => Console.WriteLine("Hot1 Observer 1: OnError: {0}", ex.Message)),
+                    () => yLogger.Log(() => Console.WriteLine("Hot1 Observer 1: OnCompleted")));
+
+            wLogger.Log(() => Console.WriteLine("Стартую второй"));
             IDisposable hots2 = hotSource
                 //.Where(c => c.TypeId < 1000)
                 .Subscribe(
-                    x => bLogger.Log(() => Console.WriteLine("Observer 2: OnNext: {0}", x)),
-                    ex => bLogger.Log(() => Console.WriteLine("Observer 2: OnError: {0}", ex.Message)),
-                    () => bLogger.Log(() => Console.WriteLine("Observer 2: OnCompleted")));
-            //hots.Dispose();
-            //hots2.Dispose();
+                    x => bLogger.Log(() => Console.WriteLine("Hot1 Observer 2: OnNext: {0}", x)),
+                    ex => bLogger.Log(() => Console.WriteLine("Hot1 Observer 2: OnError: {0}", ex.Message)),
+                    () => bLogger.Log(() => Console.WriteLine("Hot1 Observer 2: OnCompleted")));
+            wLogger.Log(() => Console.WriteLine("Коннект"));
+            hotSource.Connect();       // hot is connected to source and starts pushing value to subscribers 
 
-            ////Console.WriteLine("Current Time: " + DateTime.Now);
-            IObservable<long> source = Observable.Interval(TimeSpan.FromSeconds(1));            //creates a sequence
-            IConnectableObservable<long> hot = Observable.Publish<long>(source);  // convert the sequence into a hot sequence
 
-            IDisposable subscription1 = hot.Subscribe(                        // no value is pushed to 1st subscription at this point
-                                        x => Console.WriteLine("Observer 1: OnNext: {0}", x),
-                                        ex => Console.WriteLine("Observer 1: OnError: {0}", ex.Message),
-                                        () => Console.WriteLine("Observer 1: OnCompleted"));
-            //Console.WriteLine("Current Time after 1st subscription: " + DateTime.Now);
-            //Thread.Sleep(3000);  //idle for 3 seconds
-            hot.Connect();       // hot is connected to source and starts pushing value to subscribers 
-            //Console.WriteLine("Current Time after Connect: " + DateTime.Now);
-            Thread.Sleep(3000);  //idle for 3 seconds
-            //Console.WriteLine("Current Time just before 2nd subscription: " + DateTime.Now);
 
-            IDisposable subscription2 = hot.Subscribe(     // value will immediately be pushed to 2nd subscription
-                                        x => Console.WriteLine("Observer 2: OnNext: {0}", x),
-                                        ex => Console.WriteLine("Observer 2: OnError: {0}", ex.Message),
-                                        () => Console.WriteLine("Observer 2: OnCompleted"));
+            /* Hot Subscription - 2 */
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("/* Hot Subscription - 2 */");
+            Console.WriteLine();
+            var observer = new Subject<ILogItem>();
+
+            var thread = new Thread(() => TickerPopulation(observer, 1000));
+            thread.Start();
+            Thread.Sleep(2000);
+            wLogger.Log(() => Console.WriteLine("Стартую первый"));
+            var subs1 = observer.Where(c => c.TypeId >= 1000).Subscribe(Observer.Create<ILogItem>(c => bLogger.Log(() => Console.WriteLine("Hot2 Observer 1: OnNext: {0}", c))));
+
+
+            Thread.Sleep(2000);
+            wLogger.Log(() => Console.WriteLine("Стартую второй"));
+            var subs2 = observer.Where(c => c.TypeId < 1000).Subscribe(Observer.Create<ILogItem>(c => yLogger.Log(() => Console.WriteLine("Hot2 Observer 2: OnNext: {0}", c))));
+
+            Thread.Sleep(2000);
+            subs1.Dispose();
+            wLogger.Log(() => Console.WriteLine("Уничтожил первый"));
+
+            Thread.Sleep(2000);
+            wLogger.Log(() => Console.WriteLine("Стартую третий"));
+            var subs3 = observer.Where(c => c.TypeId < 1000).Subscribe(Observer.Create<ILogItem>(c => wLogger.Log(() => Console.WriteLine("Hot2 Observer 3: OnNext: {0}", c))));
+
+            Thread.Sleep(2000);
+            subs2.Dispose();
+            wLogger.Log(() => Console.WriteLine("Уничтожил второй"));
+
+            Thread.Sleep(2000);
+            subs3.Dispose();
+            wLogger.Log(() => Console.WriteLine("Уничтожил третий"));
 
 
             //// Finish
-            //Console.WriteLine("Press to exit");
+            Console.WriteLine("Press to exit");
             Console.ReadKey();
         }
 
+        private static void TickerPopulation(Subject<ILogItem> observer, int amount)
+        {
+            foreach (var logItem in Tickers(amount))
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine(logItem.TypeId);
+                observer.OnNext(logItem);
+            }
+        }
 
 
-
-
-        public static IObservable<ILogItem> ObservableTickers()
+        public static IObservable<ILogItem> ObservableTickers(int amount)
         {
             IObservable<ILogItem> observable = null;
 
             //observable = Tickers().ToObservable();
-            observable = Observable.Create<ILogItem>((o)=> Tickers().ToObservable().Subscribe(o));
+            observable = Observable.Create<ILogItem>((o) => Tickers(amount).ToObservable().Subscribe(o));
 
             return observable;
         }
 
 
-        public static IEnumerable<ILogItem> Tickers()
+        public static IEnumerable<ILogItem> Tickers(int amount)
         {
             Random random = new Random();
-            int Limit = 50;
+            int Limit = amount;
             while (Limit > 0)
             {
                 yield return TickerFabrika.GetNewTicker();
-                Thread.Sleep(random.Next(20, 500));
+                Thread.Sleep(random.Next(20, 50));
                 Limit--;
             }
         }
-
-        public static void ConsoleLogTickers()
-        {
-            foreach (var item in Tickers())
-            {
-                Console.WriteLine(item);
-            }
-        }
     }
-
-
-    public class TickerInstance
-    {
-
-        public IObservable<ILogItem> ObservableTickers()
-        {
-            return Tickers().ToObservable();
-        }
-
-
-        public IEnumerable<ILogItem> Tickers()
-        {
-            Random random = new Random();
-            int Limit = 50;
-            while (Limit > 0)
-            {
-                yield return TickerFabrika.GetNewTicker();
-                Thread.Sleep(random.Next(20, 500));
-                Limit--;
-            }
-        }
-
-        public void ConsoleLogTickers()
-        {
-            foreach (var item in Tickers())
-            {
-                Console.WriteLine(item);
-            }
-        }
-    }
-
 }
