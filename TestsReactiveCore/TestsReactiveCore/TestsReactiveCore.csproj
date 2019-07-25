@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Contract.Abstracts\Contract.Abstracts.csproj" />
     <ProjectReference Include="..\Contract.Models\Contract.Models.csproj" />
+    <ProjectReference Include="..\Utils.Console\Utils.Console.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contract.Models", "Contract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contract.Abstracts", "Contract.Abstracts\Contract.Abstracts.csproj", "{8F078041-83D1-4DFE-BB87-1C400872041E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils.Console", "Utils.Console\Utils.Console.csproj", "{A33D93CC-6FAA-4762-A214-D9356C945593}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{8F078041-83D1-4DFE-BB87-1C400872041E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F078041-83D1-4DFE-BB87-1C400872041E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F078041-83D1-4DFE-BB87-1C400872041E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A33D93CC-6FAA-4762-A214-D9356C945593}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A33D93CC-6FAA-4762-A214-D9356C945593}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A33D93CC-6FAA-4762-A214-D9356C945593}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A33D93CC-6FAA-4762-A214-D9356C945593}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
