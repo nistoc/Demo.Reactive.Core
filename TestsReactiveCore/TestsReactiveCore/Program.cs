@@ -118,6 +118,10 @@ namespace TestsReactiveCore
             subs3.Dispose();
             wLogger.Log(() => Console.WriteLine("Уничтожил третий"));
 
+            Thread.Sleep(2000);
+            observer.Dispose();
+            wLogger.Log(() => Console.WriteLine("Уничтожил observer"));
+
 
             //// Finish
             Console.WriteLine("Press to exit");
@@ -128,8 +132,10 @@ namespace TestsReactiveCore
         {
             foreach (var logItem in Tickers(amount))
             {
+                if (observer == null || observer.IsDisposed) return;
+
                 Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.WriteLine(logItem.TypeId);
+                Console.Write(logItem.TypeId + "   ");
                 observer.OnNext(logItem);
             }
         }
