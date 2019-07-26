@@ -25,7 +25,8 @@ namespace Contract.Models.DTO
 
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(this);
+            //return JsonConvert.SerializeObject(this);
+            return JsonConvert.SerializeObject(TypeId);
         }
 
     }

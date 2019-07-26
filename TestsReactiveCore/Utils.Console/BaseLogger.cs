@@ -12,6 +12,7 @@ namespace Utils.Console
                 throw new ArgumentNullException(nameof(action));
 
             System.Console.ForegroundColor = consoleColor;
+            System.Console.WriteLine();
             action();
             System.Console.ForegroundColor = ConsoleColor.White;
         }

@@ -15,36 +15,42 @@ namespace TestsReactiveCore
         {
             Console.WriteLine("Starting");
             var yLogger = new YellowLogger();
-            var bLogger = new BlueLogger();
+            var cLogger = new CyanLogger();
             var wLogger = new WhiteLogger();
+            var gLogger = new GreenLogger();
             // Started
-
-
-            //// plain console ticker generator
-            //var tickerThread = new Thread(() => ConsoleLogTickers());
-            //tickerThread.Start();
 
 
             /* Cold Subscription */
 
             // create Observable generator
             var source = ObservableTickers(50);
-
+            Thread.Sleep(1300);
             //subscribe to observable
-            var subsCold = source.Subscribe(
+            var coldThread1 = new Thread(() =>
+            {
+                var subsCold = source
+                //.Where(c => c.TypeId > 400 && c.TypeId < 500)
+                .Subscribe(
                 x => yLogger.Log(() => Console.WriteLine("Cold OnNext: {0}", x)),
                 ex => yLogger.Log(() => Console.WriteLine("Cold OnError: {0}", ex.Message)),
                 () => yLogger.Log(() => Console.WriteLine("Cold OnCompleted")));
+                subsCold.Dispose();
+            });
             //subscribe to observable
-            var subs2Cold = source
-                .Where(c => c.TypeId < 500)
-                .Subscribe(
-                    x => bLogger.Log(() => Console.WriteLine("Cold OnNext: {0}", x)),
-                    ex => bLogger.Log(() => Console.WriteLine("Cold OnError: {0}", ex.Message)),
-                    () => bLogger.Log(() => Console.WriteLine("Cold OnCompleted")));
-            // kill subscription
-            subsCold.Dispose();
-            subs2Cold.Dispose();
+            var coldThread2 = new Thread(() =>
+            {
+                var subs2Cold = source
+                    //.Where(c => c.TypeId > 400 && c.TypeId < 500)
+                    .Subscribe(
+                        x => cLogger.Log(() => Console.WriteLine("Cold OnNext: {0}", x)),
+                        ex => cLogger.Log(() => Console.WriteLine("Cold OnError: {0}", ex.Message)),
+                        () => cLogger.Log(() => Console.WriteLine("Cold OnCompleted")));
+                // kill subscription
+                subs2Cold.Dispose();
+            });
+            coldThread1.Start();
+            coldThread2.Start();
 
 
             /* Hot Subscription - 1 */
@@ -54,31 +60,36 @@ namespace TestsReactiveCore
             Console.WriteLine();
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine("/* Hot Subscription - 1 */");
+            var tab = "                                                                                            ";
+            Console.WriteLine(tab + "/* Hot Subscription - 1 */");
             Console.WriteLine();
-
             // http://rxwiki.wikidot.com/101samples#toc48
             IConnectableObservable<ILogItem> hotSource = Observable.Publish<ILogItem>(ObservableTickers(100));
             Thread.Sleep(2000);
-            wLogger.Log(() => Console.WriteLine("Стартую первый"));
+            wLogger.Log(() => Console.WriteLine(tab + "Стартую первый"));
             IDisposable hots = hotSource
                 //.Where(c => c.TypeId >= 1000)
                 .Subscribe(
-                    x => yLogger.Log(() => Console.WriteLine("Hot1 Observer 1: OnNext: {0}", x)),
-                    ex => yLogger.Log(() => Console.WriteLine("Hot1 Observer 1: OnError: {0}", ex.Message)),
-                    () => yLogger.Log(() => Console.WriteLine("Hot1 Observer 1: OnCompleted")));
+                    x => yLogger.Log(() => Console.WriteLine(tab + "Hot1 Observer 1: OnNext: {0}", x)),
+                    ex => yLogger.Log(() => Console.WriteLine(tab + "Hot1 Observer 1: OnError: {0}", ex.Message)),
+                    () => yLogger.Log(() => Console.WriteLine(tab + "Hot1 Observer 1: OnCompleted")));
 
-            wLogger.Log(() => Console.WriteLine("Стартую второй"));
+            wLogger.Log(() => Console.WriteLine(tab + "Коннект"));
+            var threadHot1 = new Thread(() => hotSource.Connect());
+            threadHot1.Start();
+
+            Thread.Sleep(1500);
+            wLogger.Log(() => Console.WriteLine(tab + "Стартую второй"));
             IDisposable hots2 = hotSource
                 //.Where(c => c.TypeId < 1000)
                 .Subscribe(
-                    x => bLogger.Log(() => Console.WriteLine("Hot1 Observer 2: OnNext: {0}", x)),
-                    ex => bLogger.Log(() => Console.WriteLine("Hot1 Observer 2: OnError: {0}", ex.Message)),
-                    () => bLogger.Log(() => Console.WriteLine("Hot1 Observer 2: OnCompleted")));
-            wLogger.Log(() => Console.WriteLine("Коннект"));
-            hotSource.Connect();       // hot is connected to source and starts pushing value to subscribers 
-
-
+                    x => cLogger.Log(() => Console.WriteLine(tab + "Hot1 Observer 2: OnNext: {0}", x)),
+                    ex => cLogger.Log(() => Console.WriteLine(tab + "Hot1 Observer 2: OnError: {0}", ex.Message)),
+                    () => cLogger.Log(() => Console.WriteLine(tab + "Hot1 Observer 2: OnCompleted")));
+            //hotSource.Connect();       // hot is connected to source and starts pushing value to subscribers 
+            Thread.Sleep(3000);
+            wLogger.Log(() => Console.WriteLine("Уничтожил Hot1 Observer 1"));
+            hots.Dispose();
 
             /* Hot Subscription - 2 */
             Console.WriteLine();
@@ -95,7 +106,7 @@ namespace TestsReactiveCore
             thread.Start();
             Thread.Sleep(2000);
             wLogger.Log(() => Console.WriteLine("Стартую первый"));
-            var subs1 = observer.Where(c => c.TypeId >= 1000).Subscribe(Observer.Create<ILogItem>(c => bLogger.Log(() => Console.WriteLine("Hot2 Observer 1: OnNext: {0}", c))));
+            var subs1 = observer.Where(c => c.TypeId >= 1000).Subscribe(Observer.Create<ILogItem>(c => cLogger.Log(() => Console.WriteLine("Hot2 Observer 1: OnNext: {0}", c))));
 
 
             Thread.Sleep(2000);
@@ -108,7 +119,7 @@ namespace TestsReactiveCore
 
             Thread.Sleep(2000);
             wLogger.Log(() => Console.WriteLine("Стартую третий"));
-            var subs3 = observer.Where(c => c.TypeId < 1000).Subscribe(Observer.Create<ILogItem>(c => wLogger.Log(() => Console.WriteLine("Hot2 Observer 3: OnNext: {0}", c))));
+            var subs3 = observer.Where(c => c.TypeId < 1000).Subscribe(Observer.Create<ILogItem>(c => gLogger.Log(() => Console.WriteLine("Hot2 Observer 3: OnNext: {0}", c))));
 
             Thread.Sleep(2000);
             subs2.Dispose();
@@ -133,9 +144,6 @@ namespace TestsReactiveCore
             foreach (var logItem in Tickers(amount))
             {
                 if (observer == null || observer.IsDisposed) return;
-
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.Write(logItem.TypeId + "   ");
                 observer.OnNext(logItem);
             }
         }
@@ -158,7 +166,10 @@ namespace TestsReactiveCore
             int Limit = amount;
             while (Limit > 0)
             {
-                yield return TickerFabrika.GetNewTicker();
+                var logItem = TickerFabrika.GetNewTicker();
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.Write(logItem.TypeId + "   ");
+                yield return logItem;
                 Thread.Sleep(random.Next(20, 50));
                 Limit--;
             }
